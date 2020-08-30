@@ -1,13 +1,31 @@
-const fs = require('fs');
-const { exit } = require('process');
+var knex = require('knex')({
+    client: 'mysql2',
+    connection: {
+        host: '0.0.0.0',
+        user: 'root',
+        password: '123456',
+        database: 'anime_api'
+    },
+    log: {
+        warn(message) {
+            console.log(message);
+        },
+        error(message) {
+            console.log(message);
+        },
+    }
+});
 
 exports.get = (req, res) => {
-    animes = JSON.parse(fs.readFileSync(__dirname + '/animes.json'));
-    res.json(
-        {
-            animes
-        }
-    );
+    knex.select()
+        .table('animes')
+        .then(animes => {
+            res.json(
+                {
+                    animes
+                }
+            );
+        }).catch(error => res.status(400).json({error}))
 }
 
 exports.create = (req, res) => {
@@ -19,44 +37,44 @@ exports.create = (req, res) => {
             })
     }
 
-    animes = JSON.parse(fs.readFileSync(__dirname + '/animes.json'));
+    knex('animes')
+        .where('name', req.name)
+        .first()
+        .then(anime => {
+            if (anime) {
+                return res.status(422)
+                    .json({ error: 'Já existe um anime com este nome!' })
+            }
 
-    if (animes.filter(anime => anime.name == req.name)) {
-        return res.status(422)
-            .json({
-                error: 'Este anime já existe'
-            })
-    }
+            knex('animes')
+                .insert({ name: req.name })
+                .then(rows => {
 
-    let highestId = 0;
-    animes.forEach(function (anime) {
-        if (anime.id > highestId) highestId = anime.id;
-    });
+                    if (rows == 0) {
+                        return res.status(406)
+                            .json({ error: 'Não sei o que rolou' })
+                    }
 
-    let anime = {
-        id: highestId + 1,
-        name: req.name
-    };
-
-    animes.push(anime);
-    fs.writeFileSync(__dirname + '/animes.json', JSON.stringify(animes, null, 2))
-
-    res.json(
-        {success: true}
-    );
+                    return res.json({ success: 'Anime criado com sucesso!' })
+                })
+                .catch(error => res.status(400).json(error))
+        })
 }
 
 exports.getOne = (req, res) => {
-    animes = JSON.parse(fs.readFileSync(__dirname + '/animes.json'));
-    let anime = animes.find(anime => anime.id == req.params.id);
-    if (anime) {
-        return res.json(anime);
-    }
+    knex('animes')
+        .where('id', req.params.id)
+        .first()
+        .then(anime => {
+            if (!anime) {
+                return res.status(404)
+                    .json({error: 'Anime não encontrado'})
+            }
 
-    return res.status(404)
-        .json({
-            error: 'Anime não encontrado'
-        })
+            return res.json(
+                anime
+            );
+        }).catch(error => res.status(400).json({ error }))
 }
 
 exports.update = (req, res) => {
@@ -68,43 +86,31 @@ exports.update = (req, res) => {
                 error: 'O campo Nome é obrigatório'
             })
     }
-    animes = JSON.parse(fs.readFileSync(__dirname + '/animes.json'))
-    let anime = animes.find(anime => anime.id == parseInt(params.id))
-    let index = animes.findIndex(anime => anime.id == parseInt(params.id) )
+    knex('animes')
+        .where('id', params.id)
+        .update({name: req.name})
+        .then(rows => {
+            if (rows) {
+                return res.json({success: 'Anime atualizado com sucesso'})
+            }
 
-    if (anime) {
-        anime = {
-            id: parseInt(anime.id),
-            name: req.name
-        }
-        animes[index] = anime
-        fs.writeFileSync(__dirname + '/animes.json', JSON.stringify(animes, null, 2))
-
-        res.json(
-            { success: true }
-        );
-    }
-
-    return res.status(404)
-        .json({
-            error: 'Anime não encontrado'
+            return res.status(404).json({error: 'Anime não encontrado'})
         })
+        .catch(error => res.status(400).json({error}))
+
 }
 
 exports.delete = (req, res) => {
-    animes = JSON.parse(fs.readFileSync(__dirname + '/animes.json'));
-    let index = animes.findIndex(anime => anime.id == parseInt(req.params.id));
-    if (index > -1) {
-        animes.splice(index, 1);
-        fs.writeFileSync(__dirname + '/animes.json', JSON.stringify(animes, null, 2))
-    
-        return res.json({
-            success: true
-        })
-    }
+    knex('animes')
+        .where('id', req.params.id)
+        .del()
+        .then(rows => {
+            if (rows == 0) {
+                return res.status(404)
+                    .json({error: 'Anime não encontrado'})
+            }
 
-    return res.status(404)
-        .json({
-            error: 'Anime não encontrado'
+            return res.json({success: true});
         })
+        .catch(error => res.status(400).json({error}))
 }

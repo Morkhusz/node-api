@@ -1,18 +1,58 @@
 [
   {
     "id": 2,
-    "name": "fairy tail"
+    "name": "fairy tail",
+    "eps": [
+        {
+            "number": 1,
+            "name": "um episódio massa"
+        },
+        {
+            "number": 2,
+            "name": "um filler de vagabundo"
+        }
+    ]
   },
   {
     "id": 3,
-    "name": "fullmetal"
+    "name": "fullmetal",
+    "eps": [
+        {
+            "number": 1,
+            "name": "um episódio massa"
+        },
+        {
+            "number": 2,
+            "name": "um filler de vagabundo"
+        }
+    ]
   },
   {
     "id": 4,
-    "name": "one piece"
+    "name": "one piece",
+    "eps": [
+        {
+            "number": 1,
+            "name": "um episódio massa"
+        },
+        {
+            "number": 2,
+            "name": "um filler de vagabundo"
+        }
+    ]
   },
   {
     "id": 5,
-    "name": "one punch man"
+    "name": "one punch man",
+    "eps": [
+        {
+            "number": 1,
+            "name": "um episódio massa"
+        },
+        {
+            "number": 2,
+            "name": "um filler de vagabundo"
+        }
+    ]
   }
 ]
